@@ -1,4 +1,4 @@
-package com.darekbx.wheresmybus.busstops
+package com.darekbx.wheresmybus.domain.busstops
 
 import com.darekbx.wheresmybus.BuildConfig
 import com.darekbx.wheresmybus.repository.local.dao.BusStopDao

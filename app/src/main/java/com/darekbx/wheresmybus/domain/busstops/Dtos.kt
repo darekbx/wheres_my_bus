@@ -1,4 +1,4 @@
-package com.darekbx.wheresmybus.busstops
+package com.darekbx.wheresmybus.domain.busstops
 
 import kotlinx.serialization.Serializable
 

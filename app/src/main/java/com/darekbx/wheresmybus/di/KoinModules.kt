@@ -2,7 +2,7 @@ package com.darekbx.wheresmybus.di
 
 import android.app.Application
 import androidx.room.Room
-import com.darekbx.wheresmybus.busstops.BusStopsUseCase
+import com.darekbx.wheresmybus.domain.busstops.BusStopsUseCase
 import com.darekbx.wheresmybus.repository.local.AppDatabase
 import com.darekbx.wheresmybus.repository.local.dao.BusStopDao
 import com.darekbx.wheresmybus.ui.BusStopsViewModel
