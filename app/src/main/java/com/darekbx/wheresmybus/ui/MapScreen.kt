@@ -19,9 +19,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.clustering.Clustering
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
 import org.koin.androidx.compose.koinViewModel
 
 // TODO move, refactor, or use different method to get marker, maybe directly from bitmap?
@@ -62,14 +61,10 @@ fun MapScreen(modifier: Modifier, busStopsViewModel: BusStopsViewModel = koinVie
                     .fillMaxSize(),
                 cameraPositionState = cameraPositionState
             ) {
-                busStops.forEach {
-                    Marker(
-                        state = rememberMarkerState(position = it.position),
-                        title = it.name,
-                        snippet = it.direction,
-                        icon = icon
-                    )
-                }
+                // TODO: throws ANR
+                Clustering(
+                    items = busStops,
+                )
             }
 
         }

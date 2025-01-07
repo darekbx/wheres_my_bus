@@ -65,7 +65,11 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.kotlinx.serialization.json)
 
+    implementation(libs.osmdroid)
+    implementation(files("libs/osmbonuspack_6.9.0.aar"))
+
     implementation(libs.compose.maps)
+    implementation(libs.compose.maps.utils)
 
     implementation(libs.koin.core)
     implementation(libs.koin.android)
@@ -78,6 +82,7 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.firebase.firestore.ktx)
     ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
