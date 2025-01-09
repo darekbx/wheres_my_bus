@@ -8,6 +8,8 @@ import androidx.room.PrimaryKey
 data class BusStopDto(
     @PrimaryKey(autoGenerate = true) val id: Int? = null,
     @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "busstop_id") val busStopId: String,
+    @ColumnInfo(name = "busstop_nr") val busStopNr: String,
     @ColumnInfo(name = "latitude") val latitude: Double,
     @ColumnInfo(name = "longitude") val longitude: Double,
     @ColumnInfo(name = "direction") val direction: String,

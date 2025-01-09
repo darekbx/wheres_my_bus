@@ -1,6 +1,7 @@
 package com.darekbx.wheresmybus.ui
 
 import android.content.Context
+import android.util.Log
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,7 @@ import org.osmdroid.views.overlay.Marker
 @Composable
 fun MapDroidScreen(modifier: Modifier, busStopsViewModel: BusStopsViewModel = koinViewModel()) {
     val busStops by busStopsViewModel.busStops.collectAsState()
+    val busLines by busStopsViewModel.busLines.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -46,43 +48,69 @@ fun MapDroidScreen(modifier: Modifier, busStopsViewModel: BusStopsViewModel = ko
     }
 
     when {
-        busStops.isEmpty() -> { Text("TODO: Loading or empty") }
+        busStops.isEmpty() -> {
+            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("TODO: Loading or empty")
+            }
+        }
+
         else -> {
+            MapWidget(modifier, context, busStops) { busStop ->
+                busStopsViewModel.fetchBusLines(busStop.busStopId, busStop.busStopNr)
+            }
+        }
+    }
 
-            val mapView = rememberMapWithLifecycle()
-            val defaultZoom = 14.0
-            val defaultLocation = GeoPoint(52.15, 21.025)
-            MapBox(modifier = modifier.padding(bottom = 8.dp)) {
-                Box(
-                    modifier = Modifier
-                        .background(
-                            MaterialTheme.colorScheme.primaryContainer,
-                            RoundedCornerShape(8.dp)
-                        )
-                        .fillMaxSize()
-                ) {
-                    AndroidView(factory = { mapView }) { mapView ->
+    if (busLines.isNotEmpty()) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
+                    .padding(8.dp)
+            ) {
+                Text("Bus lines: ${busLines.joinToString()}")
+            }
+        }
+    }
+}
 
-                        Configuration.getInstance()
-                            .load(context, context.getSharedPreferences("osm", Context.MODE_PRIVATE))
+@Composable
+private fun MapWidget(
+    modifier: Modifier,
+    context: Context,
+    busStops: List<BusStop>,
+    onBusStopClick: (BusStop) -> Unit = {}
+) {
+    val mapView = rememberMapWithLifecycle()
+    val defaultZoom = 14.0
+    val defaultLocation = GeoPoint(52.15, 21.025)
 
-                        val clusterer =RadiusMarkerClusterer(context)
-                        clusterer.setRadius(100)
+    MapBox(modifier = modifier.padding(bottom = 8.dp)) {
+        Box(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
+                .fillMaxSize()
+        ) {
+            AndroidView(factory = { mapView }) { mapView ->
 
-                        mapView.setTileSource(TileSourceFactory.MAPNIK)
-                        mapView.controller.apply {
-                            setZoom(defaultZoom)
-                            setCenter(defaultLocation)
-                        }
-                        mapView.overlays.clear()
+                Configuration.getInstance()
+                    .load(context, context.getSharedPreferences("osm", Context.MODE_PRIVATE))
 
-                        busStops.forEach { busStop ->
-                            clusterer.drawPoint(mapView, busStop)
-                        }
+                val clusterer = RadiusMarkerClusterer(context)
+                clusterer.setRadius(500)
 
-                        mapView.overlays.add(clusterer)
-                    }
+                mapView.setTileSource(TileSourceFactory.MAPNIK)
+                mapView.controller.apply {
+                    setZoom(defaultZoom)
+                    setCenter(defaultLocation)
                 }
+                mapView.overlays.clear()
+
+                busStops.forEach { busStop ->
+                    clusterer.drawPoint(mapView, busStop, onBusStopClick)
+                }
+
+                mapView.overlays.add(clusterer)
             }
         }
     }
@@ -90,13 +118,17 @@ fun MapDroidScreen(modifier: Modifier, busStopsViewModel: BusStopsViewModel = ko
 
 fun MarkerClusterer.drawPoint(
     mapView: MapView,
-    point: BusStop
+    busStop: BusStop,
+    onBusStopClick: (BusStop) -> Unit = {}
 ) {
-    val point = Marker(mapView).apply {
-        position = GeoPoint(point.position.latitude, point.position.longitude)
+    add(Marker(mapView).apply {
+        position = busStop.getGeoPoint()
         icon = mapView.context.getDrawable(R.drawable.ic_bus_stop)
-    }
-    add(point)
+        setOnMarkerClickListener { marker, mapView ->
+            onBusStopClick(busStop)
+            true
+        }
+    })
 }
 
 @Composable
