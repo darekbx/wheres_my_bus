@@ -3,14 +3,32 @@ package com.darekbx.wheresmybus.ui
 import android.content.Context
 import android.util.Log
 import android.view.View
+import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -20,7 +38,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -41,6 +63,7 @@ import org.osmdroid.views.overlay.Marker
 fun MapDroidScreen(modifier: Modifier, busStopsViewModel: BusStopsViewModel = koinViewModel()) {
     val busStops by busStopsViewModel.busStops.collectAsState()
     val busLines by busStopsViewModel.busLines.collectAsState()
+    val liveItems by busStopsViewModel.liveItems.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -50,7 +73,7 @@ fun MapDroidScreen(modifier: Modifier, busStopsViewModel: BusStopsViewModel = ko
     when {
         busStops.isEmpty() -> {
             Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("TODO: Loading or empty")
+                CircularProgressIndicator(Modifier.size(64.dp))
             }
         }
 
@@ -62,13 +85,61 @@ fun MapDroidScreen(modifier: Modifier, busStopsViewModel: BusStopsViewModel = ko
     }
 
     if (busLines.isNotEmpty()) {
-        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Box(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
-                    .padding(8.dp)
-            ) {
-                Text("Bus lines: ${busLines.joinToString()}")
+        BusLines(
+            modifier,
+            busLines,
+            onBusLineClick = { busLine ->
+
+                busStopsViewModel.fetchLiveBuses(busLine)
+
+            },
+            onClose = { busStopsViewModel.clearBusLines() }
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun BusLines(
+    modifier: Modifier,
+    busLines: List<String>,
+    onBusLineClick: (String) -> Unit = { },
+    onClose: () -> Unit = { }
+) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .shadow(8.dp)
+                .background(
+                    MaterialTheme.colorScheme.primaryContainer,
+                    RoundedCornerShape(8.dp)
+                )
+                .padding(8.dp)
+        ) {
+            Column(modifier = Modifier.fillMaxWidth(0.8F)) {
+                FlowRow(modifier = Modifier.padding(bottom = 16.dp)) {
+                    busLines.forEach {
+                        Text(
+                            text = it,
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .clickable { onBusLineClick(it) },
+                            color = Color.Blue,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    }
+                }
+                HorizontalDivider()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Button(modifier = Modifier, onClick = onClose) {
+                        Text("Close")
+                    }
+                }
             }
         }
     }
@@ -123,8 +194,8 @@ fun MarkerClusterer.drawPoint(
 ) {
     add(Marker(mapView).apply {
         position = busStop.getGeoPoint()
-        icon = mapView.context.getDrawable(R.drawable.ic_bus_stop)
-        setOnMarkerClickListener { marker, mapView ->
+        icon = AppCompatResources.getDrawable(mapView.context, R.drawable.ic_bus_stop)
+        setOnMarkerClickListener { _, _ ->
             onBusStopClick(busStop)
             true
         }

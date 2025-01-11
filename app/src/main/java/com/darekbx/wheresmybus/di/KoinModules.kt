@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.darekbx.wheresmybus.BuildConfig
 import com.darekbx.wheresmybus.domain.buslines.BusLinesUseCase
 import com.darekbx.wheresmybus.domain.busstops.BusStopsUseCase
+import com.darekbx.wheresmybus.domain.livebuses.LiveBusesUseCase
 import com.darekbx.wheresmybus.repository.local.AppDatabase
 import com.darekbx.wheresmybus.repository.local.dao.BusStopDao
 import com.darekbx.wheresmybus.ui.BusStopsViewModel
@@ -32,10 +33,12 @@ val appModule = module {
     factory { BusStopsUseCase(get(), get(), get(named("API_URL")), get(named("API_KEY"))) }
 
     factory { BusLinesUseCase(get(), get(named("API_URL")), get(named("API_KEY"))) }
+
+    factory { LiveBusesUseCase(get(), get(named("API_URL")), get(named("API_KEY"))) }
 }
 
 val viewModelModule = module {
-    viewModel { BusStopsViewModel(get(), get()) }
+    viewModel { BusStopsViewModel(get(), get(), get()) }
 }
 
 val databaseModule = module {

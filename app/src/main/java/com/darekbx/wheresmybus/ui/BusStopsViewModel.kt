@@ -1,9 +1,12 @@
 package com.darekbx.wheresmybus.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.darekbx.wheresmybus.domain.buslines.BusLinesUseCase
 import com.darekbx.wheresmybus.domain.busstops.BusStopsUseCase
+import com.darekbx.wheresmybus.domain.livebuses.LiveBusesUseCase
+import com.darekbx.wheresmybus.domain.livebuses.LiveDataItem
 import com.darekbx.wheresmybus.model.BusStop
 import com.darekbx.wheresmybus.model.BusStop.Companion.toBusStop
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +17,8 @@ import kotlinx.coroutines.withContext
 
 class BusStopsViewModel(
     private val busStopsUseCase: BusStopsUseCase,
-    private val busLinesUseCase: BusLinesUseCase
+    private val busLinesUseCase: BusLinesUseCase,
+    private val liveBusesUseCase: LiveBusesUseCase
 ) : ViewModel() {
 
     private val _busStops = MutableStateFlow(emptyList<BusStop>())
@@ -22,6 +26,9 @@ class BusStopsViewModel(
 
     private val _busLines = MutableStateFlow(emptyList<String>())
     val busLines: StateFlow<List<String>> = _busLines
+
+    private val _liveItems = MutableStateFlow(emptyList<LiveDataItem>())
+    val liveItems: StateFlow<List<LiveDataItem>> = _liveItems
 
     fun fetchBusStops() {
         viewModelScope.launch {
@@ -38,6 +45,17 @@ class BusStopsViewModel(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 _busLines.value = busLinesUseCase.fetchBusLines(busStopId, busStopNr)
+            }
+        }
+    }
+
+    fun fetchLiveBuses(line: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                _liveItems.value = liveBusesUseCase.fetchBusLines(line)
+                _liveItems.value.forEach {
+                    Log.v("sigma", "Bus: ${it.lines}, ${it.lat}, ${it.lon}, ${it.time}")
+                }
             }
         }
     }
