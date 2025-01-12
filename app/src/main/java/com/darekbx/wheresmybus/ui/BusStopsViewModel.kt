@@ -1,6 +1,5 @@
 package com.darekbx.wheresmybus.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.darekbx.wheresmybus.domain.buslines.BusLinesUseCase
@@ -53,9 +52,6 @@ class BusStopsViewModel(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 _liveItems.value = liveBusesUseCase.fetchBusLines(line)
-                _liveItems.value.forEach {
-                    Log.v("sigma", "Bus: ${it.lines}, ${it.lat}, ${it.lon}, ${it.time}")
-                }
             }
         }
     }
