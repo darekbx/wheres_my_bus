@@ -1,4 +1,4 @@
-package com.darekbx.wheresmybus.domain.busstops
+package com.darekbx.wheresmybus.domain.stops
 
 import com.darekbx.wheresmybus.repository.local.dao.BusStopDao
 import com.darekbx.wheresmybus.repository.local.dto.BusStopDto
@@ -6,19 +6,19 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 
-class BusStopsUseCase(
+class StopsUseCase(
     private val client: HttpClient,
     private val busStopDao: BusStopDao,
     private val apiUrl: String,
     private val apiKey: String
 ) {
-    suspend fun fetchBusStops(forceRefresh: Boolean = false): List<BusStopDto>? {
+    suspend fun fetchStops(forceRefresh: Boolean = false): Result<List<BusStopDto>> {
         try {
             if (!forceRefresh) {
                 // Try to get persisted data
                 val persistedData = busStopDao.getAll()
                 if (persistedData.isNotEmpty()) {
-                    return persistedData
+                    return Result.success(persistedData)
                 }
             }
 
@@ -29,10 +29,10 @@ class BusStopsUseCase(
                 busStopDao.insertAll(mappedData)
             }
 
-            return busStopDao.getAll()
+            return Result.success(busStopDao.getAll())
         } catch (e: Exception) {
             e.printStackTrace()
-            return null
+            return Result.failure(e)
         }
     }
 

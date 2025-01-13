@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import com.darekbx.wheresmybus.R
+import com.darekbx.wheresmybus.viewmodel.BusStopsViewModel
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -43,7 +44,7 @@ fun MapScreen(modifier: Modifier, busStopsViewModel: BusStopsViewModel = koinVie
     val icon = remember { bitmapDescriptorFromVector(context, R.drawable.ic_bus_stop) }
 
     LaunchedEffect(Unit) {
-        busStopsViewModel.fetchBusStops()
+        busStopsViewModel.fetchStops()
     }
 
     when {

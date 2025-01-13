@@ -1,25 +1,25 @@
-package com.darekbx.wheresmybus.domain.buslines
+package com.darekbx.wheresmybus.domain.lines
 
 import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 
-class BusLinesUseCase(
+class LinesUseCase(
     private val client: HttpClient,
     private val apiUrl: String,
     private val apiKey: String
 ) {
-    suspend fun fetchBusLines(busStopId: String, busStopNr: String): List<String> {
+    suspend fun fetchLines(stopId: String, stopNr: String): Result<List<String>> {
         try {
-            val url = "$apiUrl/$ACTION_BUS_LINES&$BUS_STOP_ID=$busStopId&$BUS_STOP_NR=$busStopNr&$apiKey"
-            Log.v("BusLinesUseCase", "Fetching bus lines url: $url")
+            val url = "$apiUrl/$ACTION_BUS_LINES&$BUS_STOP_ID=$stopId&$BUS_STOP_NR=$stopNr&$apiKey"
+            Log.v("LinesUseCase", "Fetching bus lines url: $url")
             val response = client.get(url)
             val busLines = response.body<BusLinesResponse>()
-            return busLines.result.flatMap { it.values.map { it.value } }
+            return Result.success(busLines.result.flatMap { it.values.map { it.value } })
         } catch (e: Exception) {
             e.printStackTrace()
-            return emptyList()
+            return Result.failure(e)
         }
     }
 
