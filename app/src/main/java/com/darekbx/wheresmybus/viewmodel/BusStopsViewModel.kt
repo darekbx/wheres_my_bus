@@ -32,7 +32,11 @@ class BusStopsViewModel(
     private val _errorResponse = MutableStateFlow<Throwable?>(null)
     val errorResponse: StateFlow<Throwable?> = _errorResponse
 
+    private val _progress = MutableStateFlow(false)
+    val progress: StateFlow<Boolean> = _progress
+
     fun fetchStops() {
+        _progress.value = true
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val result = stopsUseCase.fetchStops()
@@ -40,11 +44,13 @@ class BusStopsViewModel(
                     result.isSuccess -> _busStops.value = result.getOrThrow().map { it.toBusStop() }
                     result.isFailure -> _errorResponse.value = result.exceptionOrNull()
                 }
+                _progress.value = false
             }
         }
     }
 
     fun fetchBusLines(busStopId: String, busStopNr: String) {
+        _progress.value = true
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val result = linesUseCase.fetchLines(busStopId, busStopNr)
@@ -52,11 +58,13 @@ class BusStopsViewModel(
                     result.isSuccess -> _busLines.value = result.getOrThrow()
                     result.isFailure -> _errorResponse.value = result.exceptionOrNull()
                 }
+                _progress.value = false
             }
         }
     }
 
     fun fetchLiveBuses(line: String) {
+        _progress.value = true
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val result = liveDataUseCase.fetchLiveData(line)
@@ -64,6 +72,7 @@ class BusStopsViewModel(
                     result.isSuccess -> _liveItems.value = result.getOrThrow()
                     result.isFailure -> _errorResponse.value = result.exceptionOrNull()
                 }
+                _progress.value = false
             }
         }
     }
