@@ -8,6 +8,8 @@ import com.darekbx.wheresmybus.domain.livedata.LiveDataUseCase
 import com.darekbx.wheresmybus.domain.livedata.LiveDataItem
 import com.darekbx.wheresmybus.model.BusStop
 import com.darekbx.wheresmybus.model.BusStop.Companion.toBusStop
+import com.darekbx.wheresmybus.system.LocationUtils
+import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +19,8 @@ import kotlinx.coroutines.withContext
 class BusStopsViewModel(
     private val stopsUseCase: StopsUseCase,
     private val linesUseCase: LinesUseCase,
-    private val liveDataUseCase: LiveDataUseCase
+    private val liveDataUseCase: LiveDataUseCase,
+    private val locationUtils: LocationUtils
 ) : ViewModel() {
 
     private val _busStops = MutableStateFlow(emptyList<BusStop>())
@@ -35,8 +38,16 @@ class BusStopsViewModel(
     private val _progress = MutableStateFlow(false)
     val progress: StateFlow<Boolean> = _progress
 
+    fun isLocationEnabled(): Boolean = locationUtils.isLocationEnabled()
+
+    fun fetchLocation(onLocation: (LatLng) -> Unit) {
+        locationUtils.getLastKnownLocation { location ->
+            onLocation(location)
+        }
+    }
+
     fun fetchStops() {
-        _progress.value = true
+        setProgress()
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val result = stopsUseCase.fetchStops()
@@ -44,13 +55,13 @@ class BusStopsViewModel(
                     result.isSuccess -> _busStops.value = result.getOrThrow().map { it.toBusStop() }
                     result.isFailure -> _errorResponse.value = result.exceptionOrNull()
                 }
-                _progress.value = false
+                clearProgress()
             }
         }
     }
 
     fun fetchBusLines(busStopId: String, busStopNr: String) {
-        _progress.value = true
+        setProgress()
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val result = linesUseCase.fetchLines(busStopId, busStopNr)
@@ -58,13 +69,13 @@ class BusStopsViewModel(
                     result.isSuccess -> _busLines.value = result.getOrThrow()
                     result.isFailure -> _errorResponse.value = result.exceptionOrNull()
                 }
-                _progress.value = false
+                clearProgress()
             }
         }
     }
 
     fun fetchLiveBuses(line: String) {
-        _progress.value = true
+        setProgress()
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val result = liveDataUseCase.fetchLiveData(line)
@@ -72,16 +83,26 @@ class BusStopsViewModel(
                     result.isSuccess -> _liveItems.value = result.getOrThrow()
                     result.isFailure -> _errorResponse.value = result.exceptionOrNull()
                 }
-                _progress.value = false
+                clearProgress()
             }
         }
     }
 
+    private fun setProgress() {
+        _progress.value = true
+    }
+
+    private fun clearProgress() {
+        _progress.value = false
+    }
+
     fun clearBusLines() {
         _busLines.value = emptyList()
+        clearProgress()
     }
 
     fun clearError() {
         _errorResponse.value = null
+        clearProgress()
     }
 }

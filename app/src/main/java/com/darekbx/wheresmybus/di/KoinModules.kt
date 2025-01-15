@@ -1,6 +1,8 @@
 package com.darekbx.wheresmybus.di
 
 import android.app.Application
+import android.content.Context
+import android.location.LocationManager
 import androidx.room.Room
 import com.darekbx.wheresmybus.BuildConfig
 import com.darekbx.wheresmybus.domain.lines.LinesUseCase
@@ -8,9 +10,11 @@ import com.darekbx.wheresmybus.domain.stops.StopsUseCase
 import com.darekbx.wheresmybus.domain.livedata.LiveDataUseCase
 import com.darekbx.wheresmybus.repository.local.AppDatabase
 import com.darekbx.wheresmybus.repository.local.dao.BusStopDao
+import com.darekbx.wheresmybus.system.LocationUtils
 import com.darekbx.wheresmybus.utils.LineNumberCreator
 import com.darekbx.wheresmybus.viewmodel.BusStopsViewModel
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -25,6 +29,10 @@ val appModule = module {
 
     factory {
         HttpClient {
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.ALL
+            }
             install(ContentNegotiation) {
                 json(Json { ignoreUnknownKeys = true })
             }
@@ -36,10 +44,11 @@ val appModule = module {
     factory { LiveDataUseCase(get(), get(named("API_URL")), get(named("API_KEY"))) }
 
     single { LineNumberCreator(androidContext()) }
+    single { LocationUtils(androidContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager) }
 }
 
 val viewModelModule = module {
-    viewModel { BusStopsViewModel(get(), get(), get()) }
+    viewModel { BusStopsViewModel(get(), get(), get(), get()) }
 }
 
 val databaseModule = module {

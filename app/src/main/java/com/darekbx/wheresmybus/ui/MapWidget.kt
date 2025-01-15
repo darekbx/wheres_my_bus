@@ -37,6 +37,7 @@ fun MapWidget(
     modifier: Modifier,
     context: Context,
     busStops: List<BusStop>,
+    useClustering: Boolean = false,
     onMapReady: (MapView) -> Unit = {},
     onBusStopClick: (BusStop) -> Unit = {}
 ) {
@@ -55,21 +56,33 @@ fun MapWidget(
                 Configuration.getInstance()
                     .load(context, context.getSharedPreferences("osm", Context.MODE_PRIVATE))
 
-                val clusterer = RadiusMarkerClusterer(context)
-                clusterer.setRadius(500)
+                if (useClustering) {
+                    val clusterer = RadiusMarkerClusterer(context)
+                    clusterer.setRadius(500)
+                    busStops.forEach { busStop ->
+                        clusterer.drawPoint(mapView, busStop, onBusStopClick)
+                    }
+                    mapView.overlays.add(clusterer)
+                } else {
+                    busStops.forEach { busStop ->
+                        mapView.overlays.add(Marker(mapView).apply {
+                            position = busStop.getGeoPoint()
+                            icon = AppCompatResources.getDrawable(context, R.drawable.ic_bus_stop)
+                            setOnMarkerClickListener { _, _ ->
+                                onBusStopClick(busStop)
+                                true
+                            }
+                        })
+                    }
+                }
 
                 mapView.setTileSource(TileSourceFactory.MAPNIK)
+                mapView.setMultiTouchControls(true)
                 mapView.controller.apply {
                     setZoom(defaultZoom)
                     setCenter(defaultLocation)
                 }
-                mapView.overlays.clear()
 
-                busStops.forEach { busStop ->
-                    clusterer.drawPoint(mapView, busStop, onBusStopClick)
-                }
-
-                mapView.overlays.add(clusterer)
                 onMapReady(mapView)
             }
         }
