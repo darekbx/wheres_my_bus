@@ -1,7 +1,6 @@
 package com.darekbx.wheresmybus.ui
 
 import android.Manifest
-import android.content.Context
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,13 +25,6 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import kotlin.system.exitProcess
 
-/**
- * TODO:
- *  - mark trams stops in different icon
- *  - bus stop icon
- *  - add support for trams
- */
-
 @Composable
 fun MapDroidScreen(
     modifier: Modifier,
@@ -51,7 +43,7 @@ fun MapDroidScreen(
     var activeStop by remember { mutableStateOf<BusStop?>(null) }
     var map by remember { mutableStateOf<MapView?>(null) }
 
-    DisplayUserLocation(busStopsViewModel, map, context)
+    DisplayUserLocation(busStopsViewModel, map)
 
     LaunchedEffect(Unit) {
         busStopsViewModel.fetchStops()
@@ -124,9 +116,9 @@ private fun MapView.createLineMarker(
 @Composable
 private fun DisplayUserLocation(
     busStopsViewModel: BusStopsViewModel,
-    map: MapView?,
-    context: Context
+    map: MapView?
 ) {
+    val context = LocalContext.current
     val locationPermission = rememberMultiplePermissionsState(
         listOf(
             Manifest.permission.ACCESS_COARSE_LOCATION,

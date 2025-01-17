@@ -67,7 +67,7 @@ fun MapWidget(
                     busStops.forEach { busStop ->
                         mapView.overlays.add(Marker(mapView).apply {
                             position = busStop.getGeoPoint()
-                            icon = AppCompatResources.getDrawable(context, R.drawable.ic_bus_stop)
+                            icon = AppCompatResources.getDrawable(context, R.drawable.wtp_logo)
                             setOnMarkerClickListener { _, _ ->
                                 onBusStopClick(busStop)
                                 true
