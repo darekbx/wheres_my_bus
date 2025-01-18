@@ -96,7 +96,7 @@ fun MarkerClusterer.drawPoint(
 ) {
     add(Marker(mapView).apply {
         position = busStop.getGeoPoint()
-        icon = AppCompatResources.getDrawable(mapView.context, R.drawable.ic_bus_stop)
+        icon = AppCompatResources.getDrawable(mapView.context, R.drawable.wtp_logo)
         setOnMarkerClickListener { _, _ ->
             onBusStopClick(busStop)
             true

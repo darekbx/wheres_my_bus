@@ -9,11 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import com.darekbx.wheresmybus.R
 import com.darekbx.wheresmybus.viewmodel.BusStopsViewModel
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -40,8 +37,6 @@ private fun bitmapDescriptorFromVector(context: Context, vectorResId: Int): Bitm
 @Composable
 fun MapScreen(modifier: Modifier, busStopsViewModel: BusStopsViewModel = koinViewModel()) {
     val busStops by busStopsViewModel.busStops.collectAsState()
-    val context = LocalContext.current
-    val icon = remember { bitmapDescriptorFromVector(context, R.drawable.ic_bus_stop) }
 
     LaunchedEffect(Unit) {
         busStopsViewModel.fetchStops()

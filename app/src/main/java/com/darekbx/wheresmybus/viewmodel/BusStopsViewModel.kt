@@ -81,7 +81,10 @@ class BusStopsViewModel(
                 val result = liveDataUseCase.fetchLiveData(line)
                 when  {
                     result.isSuccess -> _liveItems.value = result.getOrThrow()
-                    result.isFailure -> _errorResponse.value = result.exceptionOrNull()
+                    result.isFailure -> {
+                        _liveItems.value = emptyList()
+                        _errorResponse.value = result.exceptionOrNull()
+                    }
                 }
                 clearProgress()
             }
